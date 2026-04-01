@@ -5,7 +5,7 @@ Appuntamenti del proprietario: accetta/rifiuta proposte del veterinario.
 import streamlit as st
 from app.auth.supabase_auth import get_current_profile
 from app.services.appuntamenti_service import (
-    get_appuntamenti_owner, aggiorna_stato, STATI_LABEL,
+    get_appuntamenti_owner, STATI_LABEL,
 )
 from app.components.ui_helpers import format_datetime, render_badge, empty_state, icona_specie
 
@@ -51,16 +51,5 @@ def _lista_appuntamenti(owner_id: str, futuro: bool):
                 if app.get("note"):
                     st.caption(app["note"])
             with col3:
-                if futuro:
-                    if stato == "in_attesa":
-                        if st.button("✅ Accetta", key=f"acc_app_{app['id']}"):
-                            aggiorna_stato(app["id"], "confermato")
-                            st.rerun()
-                        if st.button("❌ Rifiuta", key=f"rif_app_{app['id']}"):
-                            aggiorna_stato(app["id"], "annullato")
-                            st.rerun()
-                    elif stato == "confermato":
-                        if st.button("❌ Annulla", key=f"ann_app_{app['id']}"):
-                            aggiorna_stato(app["id"], "annullato")
-                            st.rerun()
+                pass
             st.divider()

@@ -164,10 +164,10 @@ def _form_nuovo_appuntamento(vet_id: str):
                         "data_ora": data_ora,
                         "motivo": motivo,
                         "note": note or None,
-                        "stato": "in_attesa",
+                        "stato": "confermato",
                     })
                     if ok:
-                        st.success("✅ Appuntamento creato! Il proprietario dovrà confermarlo.")
+                        st.success("✅ Appuntamento fissato!")
                         st.session_state["agenda_form"] = False
                         st.rerun()
                     else:

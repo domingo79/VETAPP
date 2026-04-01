@@ -59,8 +59,10 @@ st.markdown(
     /* Expander */
     .streamlit-expanderHeader { font-weight: 600; }
 
-    /* Nasconde il footer Streamlit */
+    /* Nasconde footer e menu hamburger Streamlit */
     footer { visibility: hidden; }
+    #MainMenu { visibility: hidden; }
+    header[data-testid="stHeader"] { visibility: hidden; }
     </style>
     """,
     unsafe_allow_html=True,

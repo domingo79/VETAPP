@@ -6,12 +6,15 @@ import streamlit as st
 from supabase import create_client, Client
 
 
-@st.cache_resource
 def get_supabase() -> Client:
-    """Restituisce un'istanza singleton del client Supabase."""
+    """Client Supabase autenticato con il JWT dell'utente corrente (necessario per RLS)."""
     url = st.secrets["supabase"]["url"]
     key = st.secrets["supabase"]["key"]
-    return create_client(url, key)
+    client = create_client(url, key)
+    access_token = st.session_state.get("access_token")
+    if access_token:
+        client.postgrest.auth(access_token)
+    return client
 
 
 @st.cache_resource

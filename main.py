@@ -19,7 +19,6 @@ from app.pages.owner import dashboard as owner_dashboard
 from app.pages import login as login_page
 from app.auth.supabase_auth import is_logged_in, get_current_profile, get_ruolo, logout
 import streamlit as st
-import streamlit.components.v1 as components
 
 st.set_page_config(
     page_title="Kodemu Pet",
@@ -28,11 +27,6 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# Cancella lo stato sidebar salvato nel localStorage del browser
-components.html(
-    "<script>Object.keys(localStorage).forEach(k=>{ if(k.toLowerCase().includes('sidebar')) localStorage.removeItem(k); });</script>",
-    height=0,
-)
 
 # ── Pagine Owner ──────────────────────────────────────────────────────────────
 
@@ -42,12 +36,30 @@ components.html(
 st.markdown(
     """
     <style>
-    /* Sidebar compatta e fissa */
+    /* Sidebar compatta */
     [data-testid="stSidebar"] { min-width: 240px; max-width: 260px; }
 
-    /* Nasconde i bottoni apri/chiudi sidebar */
-    [data-testid="stSidebar"] [data-testid="stBaseButton-headerNoPadding"] { display: none !important; }
-    [data-testid="stSidebarCollapsedControl"] { display: none !important; }
+    /* Bottone chiudi sidebar (freccia dentro la sidebar) */
+    [data-testid="stSidebar"] [data-testid="stBaseButton-headerNoPadding"] {
+        background-color: #2D6A4F !important;
+        color: #fff !important;
+        border-radius: 50% !important;
+        width: 2rem !important;
+        height: 2rem !important;
+    }
+    [data-testid="stSidebar"] [data-testid="stBaseButton-headerNoPadding"]:hover {
+        background-color: #1B4332 !important;
+    }
+
+    /* Bottone apri sidebar (freccia quando è chiusa) */
+    [data-testid="stSidebarCollapsedControl"] button {
+        background-color: #2D6A4F !important;
+        color: #fff !important;
+        border-radius: 50% !important;
+    }
+    [data-testid="stSidebarCollapsedControl"] button:hover {
+        background-color: #1B4332 !important;
+    }
 
     /* Bottoni primari */
     .stButton > button[kind="primary"] {

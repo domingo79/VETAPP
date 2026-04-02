@@ -19,6 +19,7 @@ from app.pages.owner import dashboard as owner_dashboard
 from app.pages import login as login_page
 from app.auth.supabase_auth import is_logged_in, get_current_profile, get_ruolo, logout
 import streamlit as st
+import streamlit.components.v1 as components
 
 st.set_page_config(
     page_title="Kodemu Pet",
@@ -27,6 +28,11 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
+# Cancella lo stato sidebar salvato nel localStorage del browser
+components.html(
+    "<script>Object.keys(localStorage).forEach(k=>{ if(k.toLowerCase().includes('sidebar')) localStorage.removeItem(k); });</script>",
+    height=0,
+)
 
 # ── Pagine Owner ──────────────────────────────────────────────────────────────
 

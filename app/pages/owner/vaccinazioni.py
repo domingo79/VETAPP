@@ -1,12 +1,13 @@
 """
 pages/owner/vaccinazioni.py
-Libretto vaccinale e terapie in corso per il proprietario (sola lettura).
+Libretto vaccinale e terapie in corso per il proprietario.
+Il proprietario può visualizzare e inserire vaccinazioni dal catalogo standard.
 """
 import streamlit as st
 from datetime import date
 from app.auth.supabase_auth import get_current_profile
-from app.services.animali_service import get_animali_by_owner, get_vaccini_consigliati
-from app.services.vaccinazioni_service import get_vaccinazioni, get_terapie
+from app.services.animali_service import get_animali_by_owner
+from app.services.vaccinazioni_service import get_vaccinazioni, get_terapie, aggiungi_vaccinazione, get_catalogo_vaccini
 from app.components.ui_helpers import format_data, empty_state, divisore, icona_specie
 
 
@@ -39,9 +40,86 @@ def show():
 
 
 def _sezione_vaccinazioni(animale_id: str, animale: dict):
-    vaccini = get_vaccinazioni(animale_id)
     specie = animale.get("specie", "")
+    vaccini = get_vaccinazioni(animale_id)
 
+    # ── Bottone aggiungi (fuori dal form per dinamismo) ───────────────────────
+    if st.button("➕ Aggiungi vaccinazione", key=f"owner_btn_vac_{animale_id}"):
+        st.session_state[f"owner_vac_form_{animale_id}"] = True
+
+    if st.session_state.get(f"owner_vac_form_{animale_id}"):
+        catalogo = get_catalogo_vaccini(specie)
+        opzioni_catalogo = {v["id"]: f"{'🔴' if v['tipo'] == 'obbligatorio' else '🟡'} {v['nome']}" for v in catalogo}
+        LIBERO = "__libero__"
+        opzioni = {LIBERO: "✏️ Inserisci nome manualmente", **opzioni_catalogo}
+
+        sel_vaccino_id = st.selectbox(
+            "Vaccino *",
+            options=list(opzioni.keys()),
+            format_func=lambda x: opzioni[x],
+            key=f"owner_sel_vac_{animale_id}",
+        )
+
+        if sel_vaccino_id != LIBERO:
+            vac_info = next((v for v in catalogo if v["id"] == sel_vaccino_id), None)
+            if vac_info and vac_info.get("descrizione"):
+                st.caption(vac_info["descrizione"])
+
+        with st.form(f"owner_form_vac_{animale_id}"):
+            if sel_vaccino_id == LIBERO:
+                nome_vac = st.text_input("Nome vaccino *")
+            else:
+                nome_vac = opzioni_catalogo[sel_vaccino_id].split(" ", 1)[1]
+                st.markdown(f"**Vaccino selezionato:** {nome_vac}")
+
+            col1, col2 = st.columns(2)
+            with col1:
+                data_somm = st.date_input(
+                    "Data somministrazione *",
+                    value=date.today(),
+                    max_value=date.today(),
+                    key=f"owner_data_somm_{animale_id}",
+                )
+            with col2:
+                data_rich = st.date_input(
+                    "Prossimo richiamo",
+                    value=None,
+                    key=f"owner_data_rich_{animale_id}",
+                )
+            lotto = st.text_input("Lotto (opzionale)")
+            note_v = st.text_input("Note")
+            col_s, col_a = st.columns(2)
+            with col_s:
+                sub_v = st.form_submit_button("💾 Salva", type="primary", use_container_width=True)
+            with col_a:
+                ann_v = st.form_submit_button("❌ Annulla", use_container_width=True)
+
+        if ann_v:
+            st.session_state[f"owner_vac_form_{animale_id}"] = False
+            st.rerun()
+        if sub_v:
+            nome_finale = nome_vac.strip() if sel_vaccino_id == LIBERO else opzioni_catalogo[sel_vaccino_id].split(" ", 1)[1]
+            if not nome_finale:
+                st.error("Nome vaccino obbligatorio.")
+            else:
+                ok = aggiungi_vaccinazione({
+                    "animale_id": animale_id,
+                    "vaccino_catalogo_id": sel_vaccino_id if sel_vaccino_id != LIBERO else None,
+                    "nome_vaccino": nome_finale,
+                    "data_somministrazione": data_somm.isoformat(),
+                    "data_prossimo_richiamo": data_rich.isoformat() if data_rich else None,
+                    "lotto": lotto or None,
+                    "note": note_v or None,
+                })
+                if ok:
+                    st.session_state[f"owner_vac_form_{animale_id}"] = False
+                    st.rerun()
+                else:
+                    st.error("Errore nel salvataggio.")
+
+    divisore()
+
+    # ── Lista vaccinazioni ────────────────────────────────────────────────────
     if not vaccini:
         empty_state("💉", "Nessun vaccino registrato")
     else:
@@ -67,13 +145,6 @@ def _sezione_vaccinazioni(animale_id: str, animale: dict):
                 f'</span></div>',
                 unsafe_allow_html=True,
             )
-
-    # Vaccini consigliati per la specie
-    consigliati = get_vaccini_consigliati(specie)
-    if consigliati:
-        divisore("💡 Vaccini consigliati per questa specie")
-        for vc in consigliati:
-            st.markdown(f"- {vc}")
 
 
 def _sezione_terapie(animale_id: str):

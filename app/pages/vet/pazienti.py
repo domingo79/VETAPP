@@ -9,6 +9,7 @@ from app.services.animali_service import get_animali_by_vet
 from app.services.vaccinazioni_service import (
     get_vaccinazioni, aggiungi_vaccinazione, elimina_vaccinazione,
     get_terapie, aggiungi_terapia, termina_terapia, elimina_terapia,
+    get_catalogo_vaccini,
 )
 from app.services.cartella_clinica_service import get_cartelle_by_animale
 from app.services.documenti_service import (
@@ -108,6 +109,7 @@ def show():
 
 def _tab_vaccini(animale: dict):
     animale_id = animale["id"]
+    specie = animale.get("specie", "")
     vaccini = get_vaccinazioni(animale_id)
 
     # Bottone aggiungi (fuori dal form)
@@ -115,8 +117,34 @@ def _tab_vaccini(animale: dict):
         st.session_state[f"vac_form_{animale_id}"] = True
 
     if st.session_state.get(f"vac_form_{animale_id}"):
+        catalogo = get_catalogo_vaccini(specie)
+
+        # Costruisce le opzioni per la selectbox
+        opzioni_catalogo = {v["id"]: f"{'🔴' if v['tipo'] == 'obbligatorio' else '🟡'} {v['nome']}" for v in catalogo}
+        LIBERO = "__libero__"
+        opzioni = {LIBERO: "✏️ Inserisci nome manualmente", **opzioni_catalogo}
+
+        # Selectbox fuori dal form per aggiornare dinamicamente
+        sel_vaccino_id = st.selectbox(
+            "Vaccino *",
+            options=list(opzioni.keys()),
+            format_func=lambda x: opzioni[x],
+            key=f"sel_vac_{animale_id}",
+        )
+
+        # Mostra descrizione se disponibile
+        if sel_vaccino_id != LIBERO:
+            vac_info = next((v for v in catalogo if v["id"] == sel_vaccino_id), None)
+            if vac_info and vac_info.get("descrizione"):
+                st.caption(vac_info["descrizione"])
+
         with st.form(f"form_vac_{animale_id}"):
-            nome_vac = st.text_input("Nome vaccino *")
+            if sel_vaccino_id == LIBERO:
+                nome_vac = st.text_input("Nome vaccino *")
+            else:
+                nome_vac = opzioni_catalogo[sel_vaccino_id].split(" ", 1)[1]  # rimuove emoji
+                st.markdown(f"**Vaccino selezionato:** {nome_vac}")
+
             col1, col2 = st.columns(2)
             with col1:
                 data_somm = st.date_input(
@@ -143,12 +171,14 @@ def _tab_vaccini(animale: dict):
             st.session_state[f"vac_form_{animale_id}"] = False
             st.rerun()
         if sub_v:
-            if not nome_vac:
+            nome_finale = nome_vac.strip() if sel_vaccino_id == LIBERO else opzioni_catalogo[sel_vaccino_id].split(" ", 1)[1]
+            if not nome_finale:
                 st.error("Nome vaccino obbligatorio.")
             else:
                 ok = aggiungi_vaccinazione({
                     "animale_id": animale_id,
-                    "nome_vaccino": nome_vac,
+                    "vaccino_catalogo_id": sel_vaccino_id if sel_vaccino_id != LIBERO else None,
+                    "nome_vaccino": nome_finale,
                     "data_somministrazione": data_somm.isoformat(),
                     "data_prossimo_richiamo": data_rich.isoformat() if data_rich else None,
                     "lotto": lotto or None,

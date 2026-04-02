@@ -6,6 +6,22 @@ from datetime import date
 from app.services.supabase_client import get_supabase
 
 
+# ── Catalogo vaccini ──────────────────────────────────────────────────────────
+
+def get_catalogo_vaccini(specie: str) -> list:
+    """Restituisce i vaccini del catalogo per la specie indicata, ordinati per tipo e nome."""
+    supabase = get_supabase()
+    result = (
+        supabase.table("vaccini_catalogo")
+        .select("id, nome, tipo, descrizione")
+        .eq("specie", specie)
+        .order("tipo")   # obbligatorio prima, opzionale dopo
+        .order("nome")
+        .execute()
+    )
+    return result.data or []
+
+
 # ── Vaccinazioni ──────────────────────────────────────────────────────────────
 
 def get_vaccinazioni(animale_id: str) -> list:

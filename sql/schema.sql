@@ -50,7 +50,8 @@ CREATE TABLE IF NOT EXISTS public.animali (
 CREATE TABLE IF NOT EXISTS public.vaccinazioni (
     id                      UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     animale_id              UUID NOT NULL REFERENCES public.animali(id) ON DELETE CASCADE,
-    nome_vaccino            TEXT NOT NULL,
+    vaccino_catalogo_id     UUID REFERENCES public.vaccini_catalogo(id) ON DELETE SET NULL,
+    nome_vaccino            TEXT NOT NULL,   -- valorizzato dal catalogo o inserito libero
     data_somministrazione   DATE NOT NULL,
     data_prossimo_richiamo  DATE,
     lotto                   TEXT,
@@ -99,6 +100,17 @@ CREATE TABLE IF NOT EXISTS public.cartelle_cliniche (
     prescrizione_digitale   TEXT,
     note                    TEXT,
     created_at              TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- ── CATALOGO VACCINI ──────────────────────────────────────────────────────────
+-- Dati di riferimento (popolati da seed_vaccini.sql)
+CREATE TABLE IF NOT EXISTS public.vaccini_catalogo (
+    id          UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    nome        TEXT NOT NULL,
+    specie      TEXT NOT NULL CHECK (specie IN ('Cane', 'Gatto', 'Cavallo')),
+    tipo        TEXT NOT NULL CHECK (tipo IN ('obbligatorio', 'opzionale')),
+    descrizione TEXT,
+    created_at  TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- ── DOCUMENTI ─────────────────────────────────────────────────────────────────
@@ -155,6 +167,7 @@ CREATE TABLE IF NOT EXISTS public.messaggi (
 -- ROW LEVEL SECURITY (RLS)
 -- ============================================================
 
+ALTER TABLE public.vaccini_catalogo  ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.profiles          ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.animali           ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.vaccinazioni      ENABLE ROW LEVEL SECURITY;
@@ -207,10 +220,25 @@ CREATE POLICY "animali_vet_linked_read" ON public.animali
         )
     );
 
+-- ── CATALOGO VACCINI
+-- Lettura per tutti gli utenti autenticati (dati di riferimento)
+CREATE POLICY "catalogo_vaccini_read" ON public.vaccini_catalogo
+    FOR SELECT USING (auth.uid() IS NOT NULL);
+
 -- ── VACCINAZIONI
--- Owner: solo lettura
+-- Owner: lettura propri animali
 CREATE POLICY "vaccinazioni_owner_read" ON public.vaccinazioni
     FOR SELECT USING (
+        animale_id IN (SELECT id FROM public.animali WHERE owner_id = auth.uid())
+    );
+-- Owner: inserimento vaccini sui propri animali
+CREATE POLICY "vaccinazioni_owner_insert" ON public.vaccinazioni
+    FOR INSERT WITH CHECK (
+        animale_id IN (SELECT id FROM public.animali WHERE owner_id = auth.uid())
+    );
+-- Owner: aggiornamento vaccini sui propri animali
+CREATE POLICY "vaccinazioni_owner_update" ON public.vaccinazioni
+    FOR UPDATE USING (
         animale_id IN (SELECT id FROM public.animali WHERE owner_id = auth.uid())
     );
 -- Vet: gestione completa (basato su collegamento accettato)
@@ -363,7 +391,8 @@ CREATE POLICY "owner_delete" ON storage.objects
 -- ============================================================
 CREATE INDEX IF NOT EXISTS idx_animali_owner   ON public.animali(owner_id);
 CREATE INDEX IF NOT EXISTS idx_animali_vet     ON public.animali(vet_id);
-CREATE INDEX IF NOT EXISTS idx_vaccinazioni_animale ON public.vaccinazioni(animale_id);
+CREATE INDEX IF NOT EXISTS idx_vaccinazioni_animale  ON public.vaccinazioni(animale_id);
+CREATE INDEX IF NOT EXISTS idx_catalogo_specie       ON public.vaccini_catalogo(specie);
 CREATE INDEX IF NOT EXISTS idx_terapie_animale ON public.terapie(animale_id);
 CREATE INDEX IF NOT EXISTS idx_appuntamenti_owner ON public.appuntamenti(owner_id);
 CREATE INDEX IF NOT EXISTS idx_appuntamenti_vet   ON public.appuntamenti(vet_id);

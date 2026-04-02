@@ -8,7 +8,7 @@ from app.services.listino_service import (
     get_listino_vet, aggiungi_voce, aggiorna_voce,
     disattiva_voce, elimina_voce,
     CATEGORIE_LISTINO, DISPONIBILITA,
-    ha_listino, inizializza_listino_default,
+    inizializza_listino_default,
 )
 from app.components.ui_helpers import empty_state, divisore
 
@@ -20,18 +20,16 @@ def show():
     st.markdown("## 💶 Listino prezzi")
     st.caption("Crea e gestisci il listino delle tue prestazioni. I proprietari collegati lo potranno visualizzare.")
 
-    # Auto-inizializzazione al primo accesso
-    if not st.session_state.get("listino_init_checked"):
-        st.session_state["listino_init_checked"] = True
-        if not ha_listino(vet_id):
-            inizializza_listino_default(vet_id)
-            st.toast("✅ Listino inizializzato con le voci predefinite. Puoi modificarle a piacere.")
-
     col1, col2 = st.columns([3, 1])
     with col2:
         mostra_disattive = st.checkbox("Mostra disattivate", value=False)
         if st.button("➕ Nuova voce", type="primary", use_container_width=True):
             st.session_state["listino_form"] = True
+        if st.button("📋 Carica voci predefinite", use_container_width=True,
+                     help="Inserisce 10 prestazioni di esempio che puoi modificare"):
+            inizializza_listino_default(vet_id)
+            st.success("✅ Voci predefinite caricate!")
+            st.rerun()
 
     if st.session_state.get("listino_form"):
         _form_voce(vet_id)

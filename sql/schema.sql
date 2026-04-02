@@ -152,6 +152,17 @@ CREATE TABLE IF NOT EXISTS public.listino_prezzi (
     updated_at          TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- ── RECENSIONI ───────────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS public.recensioni (
+    id          UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    owner_id    UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+    vet_id      UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+    voto        SMALLINT NOT NULL CHECK (voto BETWEEN 1 AND 5),
+    testo       TEXT,
+    created_at  TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE (owner_id, vet_id)   -- un owner può recensire lo stesso vet una sola volta
+);
+
 -- ── MESSAGGI (CHAT) ───────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS public.messaggi (
     id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -177,6 +188,7 @@ ALTER TABLE public.cartelle_cliniche ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.documenti         ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.collegamenti      ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.listino_prezzi    ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.recensioni         ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.messaggi          ENABLE ROW LEVEL SECURITY;
 
 -- ── PROFILES
@@ -312,6 +324,28 @@ CREATE POLICY "listino_owner_read" ON public.listino_prezzi
         )
     );
 
+-- ── RECENSIONI
+-- Tutti gli utenti autenticati possono leggere le recensioni
+CREATE POLICY "recensioni_read" ON public.recensioni
+    FOR SELECT USING (auth.uid() IS NOT NULL);
+
+-- Solo owner con collegamento accepted possono inserire una recensione
+CREATE POLICY "recensioni_owner_insert" ON public.recensioni
+    FOR INSERT WITH CHECK (
+        owner_id = auth.uid()
+        AND vet_id IN (
+            SELECT vet_id FROM public.collegamenti
+            WHERE owner_id = auth.uid() AND stato = 'accepted'
+        )
+    );
+
+-- L'owner può modificare/eliminare solo le proprie recensioni
+CREATE POLICY "recensioni_owner_update" ON public.recensioni
+    FOR UPDATE USING (owner_id = auth.uid());
+
+CREATE POLICY "recensioni_owner_delete" ON public.recensioni
+    FOR DELETE USING (owner_id = auth.uid());
+
 -- ── MESSAGGI
 CREATE POLICY "messaggi_partecipanti" ON public.messaggi
     FOR ALL USING (owner_id = auth.uid() OR vet_id = auth.uid());
@@ -399,5 +433,6 @@ CREATE INDEX IF NOT EXISTS idx_appuntamenti_vet   ON public.appuntamenti(vet_id)
 CREATE INDEX IF NOT EXISTS idx_appuntamenti_data  ON public.appuntamenti(data_ora);
 CREATE INDEX IF NOT EXISTS idx_cartelle_animale   ON public.cartelle_cliniche(animale_id);
 CREATE INDEX IF NOT EXISTS idx_messaggi_conv      ON public.messaggi(owner_id, vet_id);
+CREATE INDEX IF NOT EXISTS idx_recensioni_vet     ON public.recensioni(vet_id);
 CREATE INDEX IF NOT EXISTS idx_collegamenti_owner ON public.collegamenti(owner_id);
 CREATE INDEX IF NOT EXISTS idx_collegamenti_vet   ON public.collegamenti(vet_id);

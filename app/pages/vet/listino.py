@@ -8,6 +8,7 @@ from app.services.listino_service import (
     get_listino_vet, aggiungi_voce, aggiorna_voce,
     disattiva_voce, elimina_voce,
     CATEGORIE_LISTINO, DISPONIBILITA,
+    ha_listino, inizializza_listino_default,
 )
 from app.components.ui_helpers import empty_state, divisore
 
@@ -18,6 +19,13 @@ def show():
 
     st.markdown("## 💶 Listino prezzi")
     st.caption("Crea e gestisci il listino delle tue prestazioni. I proprietari collegati lo potranno visualizzare.")
+
+    # Auto-inizializzazione al primo accesso
+    if not st.session_state.get("listino_init_checked"):
+        st.session_state["listino_init_checked"] = True
+        if not ha_listino(vet_id):
+            inizializza_listino_default(vet_id)
+            st.toast("✅ Listino inizializzato con le voci predefinite. Puoi modificarle a piacere.")
 
     col1, col2 = st.columns([3, 1])
     with col2:
@@ -44,7 +52,12 @@ def show():
     for cat, items in sorted(categorie.items()):
         st.markdown(f"#### 📂 {cat}")
         for v in items:
-            col1, col2, col3, col4 = st.columns([3, 1, 1, 1])
+            # Se questa voce è in modalità modifica, mostra il form
+            if st.session_state.get("listino_edit_id") == v["id"]:
+                _form_modifica_voce(v)
+                continue
+
+            col1, col2, col3, col4, col5 = st.columns([3, 1, 1, 1, 1])
             with col1:
                 attiva_label = "" if v.get("attiva") else " *(disattivata)*"
                 st.markdown(
@@ -60,6 +73,10 @@ def show():
             with col2:
                 st.markdown(f"**€ {v.get('prezzo', 0):.2f}**")
             with col3:
+                if st.button("✏️", key=f"edit_{v['id']}", help="Modifica"):
+                    st.session_state["listino_edit_id"] = v["id"]
+                    st.rerun()
+            with col4:
                 if v.get("attiva"):
                     if st.button("🔇", key=f"dis_{v['id']}", help="Disattiva"):
                         disattiva_voce(v["id"])
@@ -68,7 +85,7 @@ def show():
                     if st.button("🔔", key=f"att_{v['id']}", help="Riattiva"):
                         aggiorna_voce(v["id"], {"attiva": True})
                         st.rerun()
-            with col4:
+            with col5:
                 if st.button("🗑️", key=f"del_list_{v['id']}", help="Elimina"):
                     elimina_voce(v["id"])
                     st.rerun()
@@ -115,6 +132,56 @@ def _form_voce(vet_id: str):
         if ok:
             st.success("✅ Voce aggiunta al listino!")
             st.session_state["listino_form"] = False
+            st.rerun()
+        else:
+            st.error("Errore nel salvataggio.")
+
+
+def _form_modifica_voce(v: dict):
+    """Form inline per modificare una voce esistente del listino."""
+    st.markdown(f"#### ✏️ Modifica: *{v.get('nome_prestazione','')}*")
+    with st.form(f"form_edit_{v['id']}"):
+        col1, col2 = st.columns(2)
+        with col1:
+            nome = st.text_input("Nome prestazione *", value=v.get("nome_prestazione", ""))
+            categoria = st.selectbox(
+                "Categoria *", CATEGORIE_LISTINO,
+                index=CATEGORIE_LISTINO.index(v["categoria"]) if v.get("categoria") in CATEGORIE_LISTINO else 0,
+            )
+        with col2:
+            prezzo = st.number_input("Prezzo (€) *", min_value=0.0, step=0.5, value=float(v.get("prezzo", 0)))
+            durata = st.number_input("Durata (minuti, opzionale)", min_value=0, step=5, value=int(v.get("durata_minuti") or 0))
+
+        disponibilita = st.selectbox(
+            "Disponibilità", DISPONIBILITA,
+            index=DISPONIBILITA.index(v["disponibilita"]) if v.get("disponibilita") in DISPONIBILITA else 0,
+        )
+        note = st.text_input("Note (opzionale)", value=v.get("note") or "")
+
+        col_s, col_a = st.columns(2)
+        with col_s:
+            sub = st.form_submit_button("💾 Salva modifiche", type="primary", use_container_width=True)
+        with col_a:
+            ann = st.form_submit_button("❌ Annulla", use_container_width=True)
+
+    if ann:
+        st.session_state.pop("listino_edit_id", None)
+        st.rerun()
+    if sub:
+        if not nome:
+            st.error("Il nome della prestazione è obbligatorio.")
+            return
+        ok = aggiorna_voce(v["id"], {
+            "nome_prestazione": nome,
+            "categoria": categoria,
+            "prezzo": prezzo,
+            "durata_minuti": durata or None,
+            "disponibilita": disponibilita,
+            "note": note or None,
+        })
+        if ok:
+            st.success("✅ Voce aggiornata!")
+            st.session_state.pop("listino_edit_id", None)
             st.rerun()
         else:
             st.error("Errore nel salvataggio.")

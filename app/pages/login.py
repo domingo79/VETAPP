@@ -42,15 +42,16 @@ def show():
 
     # ── TAB REGISTRAZIONE ─────────────────────────────────────────────────────
     with tab_register:
-        with st.form("form_register"):
-            ruolo = st.radio(
-                "Sei un:",
-                options=["owner", "vet"],
-                format_func=lambda x: "🐾 Proprietario di animale" if x == "owner" else "🩺 Veterinario / Clinica",
-                horizontal=True,
-                key="reg_ruolo",
-            )
+        # La radio è FUORI dal form per consentire il re-render dinamico
+        ruolo = st.radio(
+            "Sei un:",
+            options=["owner", "vet"],
+            format_func=lambda x: "🐾 Proprietario di animale" if x == "owner" else "🩺 Veterinario / Clinica",
+            horizontal=True,
+            key="reg_ruolo",
+        )
 
+        with st.form("form_register"):
             col1, col2 = st.columns(2)
             with col1:
                 nome = st.text_input("Nome *")
@@ -64,13 +65,16 @@ def show():
             password_confirm = st.text_input(
                 "Conferma password *", type="password")
 
-            clinica = st.text_input("Nome clinica (opzionale)")
+            if st.session_state.get("reg_ruolo") == "vet":
+                clinica = st.text_input("Nome clinica (opzionale)")
+            else:
+                clinica = ""
 
             submitted_r = st.form_submit_button(
                 "Registrati", use_container_width=True, type="primary")
 
         if submitted_r:
-            clinica_val = clinica if ruolo == "vet" else ""
+            clinica_val = clinica if st.session_state.get("reg_ruolo") == "vet" else ""
             if not all([nome, cognome, email_r, password_r]):
                 st.warning("Compila tutti i campi obbligatori.")
             elif password_r != password_confirm:

@@ -40,31 +40,9 @@ st.markdown(
     /* Sidebar compatta */
     [data-testid="stSidebar"] { min-width: 240px; max-width: 260px; }
 
-    /* Bottone di riapertura sidebar - sempre visibile e cliccabile */
-    [data-testid="stSidebarCollapsedControl"] {
-        display: flex !important;
-        visibility: visible !important;
-        opacity: 1 !important;
-        z-index: 999999 !important;
-        position: fixed !important;
-        left: 0.5rem !important;
-        top: 50% !important;
-        transform: translateY(-50%) !important;
-        background: #2D6A4F !important;
-        border-radius: 50% !important;
-        padding: 6px !important;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.25) !important;
-    }
-    [data-testid="stSidebarCollapsedControl"] svg {
-        fill: #fff !important;
-        color: #fff !important;
-    }
-
-    /* Freccia chiudi sidebar (dentro la sidebar) - verde */
-    [data-testid="stSidebar"] button svg {
-        fill: #2D6A4F !important;
-        color: #2D6A4F !important;
-    }
+    /* Frecce apri/chiudi sidebar - verde app */
+    [data-testid="stSidebarCollapsedControl"] svg { fill: #2D6A4F; }
+    [data-testid="stSidebar"] [data-testid="stBaseButton-headerNoPadding"] svg { fill: #2D6A4F; }
 
     /* Bottoni primari */
     .stButton > button[kind="primary"] {

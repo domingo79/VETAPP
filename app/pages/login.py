@@ -65,7 +65,7 @@ def show():
             password_confirm = st.text_input(
                 "Conferma password *", type="password")
 
-            if st.session_state.get("reg_ruolo") == "vet":
+            if ruolo == "vet":
                 clinica = st.text_input("Nome clinica (opzionale)")
             else:
                 clinica = ""
@@ -74,7 +74,7 @@ def show():
                 "Registrati", use_container_width=True, type="primary")
 
         if submitted_r:
-            clinica_val = clinica if st.session_state.get("reg_ruolo") == "vet" else ""
+            clinica_val = clinica if ruolo == "vet" else ""
             if not all([nome, cognome, email_r, password_r]):
                 st.warning("Compila tutti i campi obbligatori.")
             elif password_r != password_confirm:

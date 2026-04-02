@@ -8,6 +8,7 @@ from app.services.collegamenti_service import (
     cerca_vet_per_nome, invia_richiesta_collegamento,
     get_collegamenti_owner, invita_vet_via_email,
 )
+from app.services.listino_service import get_listino_owner
 from app.components.ui_helpers import render_badge, empty_state, divisore
 
 
@@ -23,6 +24,7 @@ def show():
         st.markdown("### 🔗 I tuoi collegamenti")
         for col in collegamenti:
             vet_profile = col.get("profiles") or {}
+            stato = col.get("stato", "pending")
             col1, col2 = st.columns([3, 1])
             with col1:
                 st.markdown(
@@ -30,7 +32,32 @@ def show():
                     f"{vet_profile.get('clinica') or ''} · {vet_profile.get('email','')}",
                 )
             with col2:
-                render_badge(col.get("stato", "pending"))
+                render_badge(stato)
+            if stato == "accepted":
+                with st.expander("💶 Vedi listino prezzi"):
+                    voci = get_listino_owner(col["vet_id"])
+                    if not voci:
+                        st.caption("Il veterinario non ha ancora pubblicato un listino.")
+                    else:
+                        categorie: dict = {}
+                        for v in voci:
+                            categorie.setdefault(v.get("categoria", "Altro"), []).append(v)
+                        for cat, items in sorted(categorie.items()):
+                            st.markdown(f"**{cat}**")
+                            for v in items:
+                                r1, r2 = st.columns([3, 1])
+                                with r1:
+                                    durata = f" · {v['durata_minuti']} min" if v.get("durata_minuti") else ""
+                                    disp = v.get("disponibilita", "")
+                                    st.markdown(
+                                        f"{v.get('nome_prestazione','')}  \n"
+                                        f"<span style='font-size:0.8rem;color:#888;'>{disp}{durata}</span>",
+                                        unsafe_allow_html=True,
+                                    )
+                                    if v.get("note"):
+                                        st.caption(v["note"])
+                                with r2:
+                                    st.markdown(f"**€ {v.get('prezzo', 0):.2f}**")
         divisore()
 
     # ── Cerca veterinario ─────────────────────────────────────────────────────

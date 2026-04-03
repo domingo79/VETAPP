@@ -101,12 +101,16 @@ def completa_profilo(user_id: str, nome: str, cognome: str, ruolo: str, clinica:
     from app.services.supabase_client import get_supabase_admin
     admin = get_supabase_admin()
     try:
-        admin.table("profiles").update({
+        user = st.session_state.get("user")
+        email = getattr(user, "email", "") if user else ""
+        admin.table("profiles").upsert({
+            "id": user_id,
+            "email": email,
             "nome": nome,
             "cognome": cognome,
             "ruolo": ruolo,
             "clinica": clinica or None,
-        }).eq("id", user_id).execute()
+        }).execute()
         # Aggiorna session_state direttamente senza ricaricare dal DB
         # (evita problemi con sessioni scadute)
         profile = st.session_state.get("profile") or {"id": user_id}

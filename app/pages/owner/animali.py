@@ -108,7 +108,8 @@ def _form_animale(owner_id: str):
         with col2:
             razza = st.text_input("Razza", value=editing.get("razza", "") if editing else "",
                                    placeholder="es. Labrador / Meticcio")
-            microchip = st.text_input("N. Microchip", value=editing.get("microchip", "") if editing else "")
+            microchip = st.text_input("N. Microchip", value=editing.get("microchip", "") if editing else "",
+                                       placeholder="Lascia vuoto se assente", help="Il microchip è un codice numerico univoco a 15 cifre. Lascia vuoto se l'animale non è ancora microchippato.")
 
         col3, col4 = st.columns(2)
         with col3:
@@ -187,13 +188,21 @@ def _form_animale(owner_id: str):
             ok = aggiorna_animale(editing["id"], payload)
             msg = "Animale aggiornato!"
         else:
-            ok = crea_animale(payload)
-            msg = "Animale aggiunto!"
+            try:
+                ok = crea_animale(payload)
+                msg = "Animale aggiunto!"
+            except Exception as e:
+                if "animali_microchip_key" in str(e):
+                    st.error("Il numero di microchip è già registrato per un altro animale.")
+                else:
+                    st.error(f"Errore nel salvataggio: {e}")
+                ok = None
+                msg = ""
 
         if ok:
             st.success(msg)
             st.session_state["animale_form_aperto"] = False
             st.session_state["animale_in_modifica"] = None
             st.rerun()
-        else:
+        elif ok is not None:
             st.error("Errore nel salvataggio.")

@@ -76,14 +76,9 @@ def get_animale_by_id(animale_id: str) -> dict | None:
 
 
 def crea_animale(data: dict) -> dict | None:
-    import streamlit as st
     supabase = get_supabase()
-    try:
-        result = supabase.table("animali").insert(data).execute()
-        return result.data[0] if result.data else None
-    except Exception as e:
-        st.error(f"Errore dettagliato: {e}")
-        return None
+    result = supabase.table("animali").insert(data).execute()
+    return result.data[0] if result.data else None
 
 
 def aggiorna_animale(animale_id: str, data: dict) -> bool:

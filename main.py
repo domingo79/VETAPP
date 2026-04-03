@@ -233,7 +233,7 @@ def _sidebar_vet(profile: dict):
         f"""
         <div style="text-align:center; padding:1rem 0 0.5rem;">
             <div style="font-size:2.5rem;">🩺</div>
-            <div style="font-weight:800; font-size:1.2rem; color:#1B4332;">Kodemu Pet</div>
+            <div style="font-weight:800; font-size:1.2rem; color:#1B4332;">Kodemu Vet</div>
             <div style="font-size:0.8rem; color:#888; margin-top:2px;">Dr. {nome} {cognome}</div>
         </div>
         """,

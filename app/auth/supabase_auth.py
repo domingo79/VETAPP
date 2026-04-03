@@ -83,10 +83,14 @@ def verifica_otp(token_hash: str, tipo: str) -> bool:
 
 
 def aggiorna_password(nuova_password: str) -> bool:
-    """Aggiorna la password dell'utente attualmente in sessione."""
-    supabase = get_supabase()
+    """Aggiorna la password dell'utente tramite admin API."""
+    from app.services.supabase_client import get_supabase_admin
+    admin = get_supabase_admin()
+    user = st.session_state.get("user")
+    if not user:
+        return False
     try:
-        supabase.auth.update_user({"password": nuova_password})
+        admin.auth.admin.update_user_by_id(user.id, {"password": nuova_password})
         return True
     except Exception:
         return False

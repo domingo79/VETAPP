@@ -18,6 +18,10 @@ def show():
         unsafe_allow_html=True,
     )
 
+    # Messaggio di successo dopo reset password
+    if st.session_state.get("flash_success"):
+        st.success(st.session_state.pop("flash_success"))
+
     tab_login, tab_register = st.tabs(["🔑 Accedi", "📝 Registrati"])
 
     # ── TAB LOGIN ─────────────────────────────────────────────────────────────

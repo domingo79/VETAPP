@@ -129,12 +129,13 @@ def _pagina_reset_password(token_hash: str):
         elif len(nuova_pwd) < 8:
             st.error("La password deve avere almeno 8 caratteri.")
         else:
-            # Verifica il token e crea la sessione, poi aggiorna la password
             ok_session = verifica_otp(token_hash, "recovery")
             if ok_session:
                 ok_pwd = aggiorna_password(nuova_pwd)
                 if ok_pwd:
-                    st.success("✅ Password aggiornata! Ora puoi accedere.")
+                    # Logout dalla sessione recovery e rimanda al login con messaggio
+                    logout()
+                    st.session_state["flash_success"] = "✅ Password aggiornata! Accedi con la tua nuova password."
                     st.query_params.clear()
                     st.rerun()
                 else:

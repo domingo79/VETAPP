@@ -94,15 +94,15 @@ def aggiorna_password(nuova_password: str) -> bool:
 
 def completa_profilo(user_id: str, nome: str, cognome: str, ruolo: str, clinica: str | None = None) -> bool:
     """Aggiorna il profilo di un utente invitato che non ha ancora completato la registrazione."""
-    supabase = get_supabase()
+    from app.services.supabase_client import get_supabase_admin
+    admin = get_supabase_admin()
     try:
-        supabase.table("profiles").update({
+        admin.table("profiles").update({
             "nome": nome,
             "cognome": cognome,
             "ruolo": ruolo,
             "clinica": clinica or None,
         }).eq("id", user_id).execute()
-        # Ricarica il profilo in sessione
         profile = _load_profile(user_id)
         st.session_state["profile"] = profile
         return True

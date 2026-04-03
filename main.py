@@ -1,8 +1,5 @@
-"""
-main.py
-Entry point dell'applicazione Kodemu Pet.
-Gestisce routing, autenticazione e navigazione per owner e vet.
-"""
+# main.py
+# Entry point di Kodemu Pet. Gestisce il routing tra owner e vet, l'auth e i flow email (reset, invite).
 from app.pages.vet import chat as vet_chat
 from app.pages.vet import listino as vet_listino
 from app.pages.vet import agenda as vet_agenda

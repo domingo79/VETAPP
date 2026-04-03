@@ -45,22 +45,12 @@ def get_animali_by_owner(owner_id: str) -> list:
 
 
 def get_animali_by_vet(vet_id: str) -> list:
-    """Restituisce tutti gli animali dei proprietari collegati al vet (stato accepted)."""
+    """Restituisce tutti gli animali assegnati al vet tramite vet_id — query singola."""
     supabase = get_supabase()
-    collegamenti = (
-        supabase.table("collegamenti")
-        .select("owner_id")
-        .eq("vet_id", vet_id)
-        .eq("stato", "accepted")
-        .execute()
-    )
-    owner_ids = [c["owner_id"] for c in (collegamenti.data or [])]
-    if not owner_ids:
-        return []
     result = (
         supabase.table("animali")
         .select("*, profiles!owner_id(nome, cognome, email)")
-        .in_("owner_id", owner_ids)
+        .eq("vet_id", vet_id)
         .order("nome")
         .execute()
     )

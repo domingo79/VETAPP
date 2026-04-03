@@ -80,6 +80,19 @@ def get_collegamenti_owner(owner_id: str) -> list:
     return result.data or []
 
 
+def get_vet_collegati_owner(owner_id: str) -> list:
+    """Restituisce i vet accettati dall'owner (per selettore nel form animale)."""
+    supabase = get_supabase()
+    result = (
+        supabase.table("collegamenti")
+        .select("vet_id, profiles!vet_id(nome, cognome, clinica)")
+        .eq("owner_id", owner_id)
+        .eq("stato", "accepted")
+        .execute()
+    )
+    return result.data or []
+
+
 def get_collegamenti_vet(vet_id: str) -> list:
     """Restituisce tutti i proprietari accettati dal vet."""
     supabase = get_supabase()
@@ -114,9 +127,6 @@ def accetta_collegamento(collegamento_id: str, vet_id: str) -> bool:
 
     # Aggiorna stato collegamento
     supabase.table("collegamenti").update({"stato": "accepted"}).eq("id", collegamento_id).execute()
-
-    # Assegna vet_id agli animali dell'owner (usa admin per bypassare RLS)
-    admin.table("animali").update({"vet_id": vet_id}).eq("owner_id", owner_id).is_("vet_id", "null").execute()
 
     return True
 

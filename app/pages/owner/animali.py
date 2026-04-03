@@ -9,6 +9,7 @@ from app.services.animali_service import (
     get_animali_by_owner, crea_animale, aggiorna_animale, elimina_animale,
     SPECIE, get_suggerimenti, get_vaccini_consigliati
 )
+from app.services.collegamenti_service import get_vet_collegati_owner
 from app.components.ui_helpers import icona_specie, format_data, empty_state, divisore
 
 
@@ -85,6 +86,8 @@ def _card_animale(animale: dict, owner_id: str):
 
 def _form_animale(owner_id: str):
     editing = st.session_state.get("animale_in_modifica")
+    # Carica vet collegati per il selettore (fuori dal form)
+    vet_collegati = get_vet_collegati_owner(owner_id)
     titolo = "✏️ Modifica animale" if editing else "➕ Nuovo animale"
 
     st.markdown(f"### {titolo}")
@@ -121,6 +124,35 @@ def _form_animale(owner_id: str):
             if _sesso_default not in _opzioni_sesso:
                 _sesso_default = "Non specificato"
             sesso = st.selectbox("Sesso", _opzioni_sesso, index=_opzioni_sesso.index(_sesso_default))
+
+        # Selettore veterinario di riferimento
+        vet_id_sel = None
+        if vet_collegati:
+            nessuno = {"vet_id": None, "profiles": {"nome": "—", "cognome": "", "clinica": ""}}
+            opzioni_vet = [nessuno] + vet_collegati
+            def _label_vet(v):
+                p = v.get("profiles") or {}
+                label = f"🩺 {p.get('nome','')} {p.get('cognome','')}".strip()
+                if p.get("clinica"):
+                    label += f" — {p['clinica']}"
+                return label if v["vet_id"] else "— Nessun vet assegnato"
+
+            # Indice default: trova il vet già assegnato se in modifica
+            idx_default = 0
+            if editing and editing.get("vet_id"):
+                for i, v in enumerate(opzioni_vet):
+                    if v["vet_id"] == editing["vet_id"]:
+                        idx_default = i
+                        break
+
+            sel_vet = st.selectbox(
+                "Veterinario di riferimento",
+                options=opzioni_vet,
+                format_func=_label_vet,
+                index=idx_default,
+                key="sel_vet_animale",
+            )
+            vet_id_sel = sel_vet["vet_id"]
 
         # Campi specie-specifici
         sterilizzato = None
@@ -167,6 +199,7 @@ def _form_animale(owner_id: str):
 
         payload = {
             "owner_id": owner_id,
+            "vet_id": vet_id_sel,
             "specie": specie,
             "nome": nome.strip().title(),
             "razza": razza.strip().title() if razza else None,

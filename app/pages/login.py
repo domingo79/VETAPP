@@ -49,7 +49,7 @@ def show():
             email_reset = st.text_input(
                 "Inserisci la tua email", placeholder="tuamail@esempio.it", key="email_reset"
             )
-            if st.button("📧 Invia link di reset", use_container_width=True):
+            if st.button("📧 Invia link di reset", use_container_width=True, type="primary"):
                 if not email_reset:
                     st.warning("Inserisci l'email.")
                 else:

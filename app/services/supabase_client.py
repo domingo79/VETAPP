@@ -14,7 +14,11 @@ def get_supabase() -> Client:
     access_token = st.session_state.get("access_token")
     refresh_token = st.session_state.get("refresh_token")
     if access_token and refresh_token:
-        client.auth.set_session(access_token, refresh_token)
+        try:
+            client.auth.set_session(access_token, refresh_token)
+        except Exception:
+            # Token scaduto o non valido — procede come client anonimo
+            pass
     elif access_token:
         client.postgrest.auth(access_token)
     return client

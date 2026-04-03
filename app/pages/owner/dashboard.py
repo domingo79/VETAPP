@@ -1,7 +1,5 @@
-"""
-pages/owner/dashboard.py
-Dashboard principale per il proprietario.
-"""
+# pages/owner/dashboard.py
+# Dashboard owner: vaccini in scadenza, prossimi appuntamenti, riepilogo animali.
 import streamlit as st
 from app.auth.supabase_auth import get_current_profile
 from app.services.animali_service import get_animali_by_owner

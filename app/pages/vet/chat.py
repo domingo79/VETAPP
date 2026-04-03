@@ -1,7 +1,5 @@
-"""
-pages/vet/chat.py
-Chat con i proprietari collegati (lato veterinario).
-"""
+# pages/vet/chat.py
+# Chat con i proprietari collegati, lato veterinario.
 import streamlit as st
 from app.auth.supabase_auth import get_current_profile
 from app.services.collegamenti_service import get_collegamenti_vet

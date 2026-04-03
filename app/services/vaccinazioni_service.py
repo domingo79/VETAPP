@@ -1,7 +1,5 @@
-"""
-services/vaccinazioni_service.py
-Gestione libretto vaccinale e terapie.
-"""
+# services/vaccinazioni_service.py
+# Libretto vaccinale e terapie dell'animale. Il catalogo vaccini viene da vaccini_catalogo.
 from datetime import date
 from app.services.supabase_client import get_supabase
 
@@ -9,13 +7,13 @@ from app.services.supabase_client import get_supabase
 # ── Catalogo vaccini ──────────────────────────────────────────────────────────
 
 def get_catalogo_vaccini(specie: str) -> list:
-    """Restituisce i vaccini del catalogo per la specie indicata, ordinati per tipo e nome."""
+    # Legge da vaccini_catalogo — obbligatori prima, opzionali dopo
     supabase = get_supabase()
     result = (
         supabase.table("vaccini_catalogo")
         .select("id, nome, tipo, descrizione")
         .eq("specie", specie)
-        .order("tipo")   # obbligatorio prima, opzionale dopo
+        .order("tipo")
         .order("nome")
         .execute()
     )
@@ -40,14 +38,6 @@ def aggiungi_vaccinazione(data: dict) -> dict | None:
     supabase = get_supabase()
     result = supabase.table("vaccinazioni").insert(data).execute()
     return result.data[0] if result.data else None
-
-
-def aggiorna_vaccinazione(vaccino_id: str, data: dict) -> bool:
-    supabase = get_supabase()
-    result = (
-        supabase.table("vaccinazioni").update(data).eq("id", vaccino_id).execute()
-    )
-    return bool(result.data)
 
 
 def elimina_vaccinazione(vaccino_id: str) -> bool:

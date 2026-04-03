@@ -1,7 +1,5 @@
-"""
-services/listino_service.py
-Gestione listino prezzi veterinario.
-"""
+# services/listino_service.py
+# Listino prezzi del vet: CRUD voci, categorie, voci predefinite di esempio.
 from app.services.supabase_client import get_supabase
 
 VOCI_DEFAULT = [
@@ -70,21 +68,8 @@ def elimina_voce(voce_id: str) -> bool:
 
 
 def get_listino_owner(vet_id: str) -> list:
-    """Il proprietario vede il listino del vet collegato (solo voci attive)."""
+    # Il proprietario vede solo le voci attive del vet collegato
     return get_listino_vet(vet_id, solo_attive=True)
-
-
-def ha_listino(vet_id: str) -> bool:
-    """Controlla se il vet ha già voci nel listino (attive o meno)."""
-    supabase = get_supabase()
-    result = (
-        supabase.table("listino_prezzi")
-        .select("id")
-        .eq("vet_id", vet_id)
-        .limit(1)
-        .execute()
-    )
-    return bool(result.data)
 
 
 def inizializza_listino_default(vet_id: str) -> bool:

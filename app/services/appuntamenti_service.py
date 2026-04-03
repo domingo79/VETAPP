@@ -1,7 +1,5 @@
-"""
-services/appuntamenti_service.py
-Prenotazioni, agenda veterinario, storico visite.
-"""
+# services/appuntamenti_service.py
+# Prenotazioni owner, agenda vet, cambio stato.
 from datetime import date, datetime
 from app.services.supabase_client import get_supabase
 
@@ -45,23 +43,6 @@ def get_appuntamenti_vet(vet_id: str, data_da: str = None, data_a: str = None) -
     return query.execute().data or []
 
 
-def ha_appuntamento_attivo(owner_id: str, vet_id: str, animale_id: str, data_ora: str) -> bool:
-    """Restituisce True se esiste già un appuntamento non annullato per stessa combo."""
-    supabase = get_supabase()
-    result = (
-        supabase.table("appuntamenti")
-        .select("id")
-        .eq("owner_id", owner_id)
-        .eq("vet_id", vet_id)
-        .eq("animale_id", animale_id)
-        .eq("data_ora", data_ora)
-        .neq("stato", "annullato")
-        .limit(1)
-        .execute()
-    )
-    return bool(result.data)
-
-
 def crea_appuntamento(data: dict) -> dict | None:
     supabase = get_supabase()
     result = supabase.table("appuntamenti").insert(data).execute()
@@ -77,14 +58,6 @@ def aggiorna_stato(appuntamento_id: str, nuovo_stato: str) -> bool:
         .update({"stato": nuovo_stato})
         .eq("id", appuntamento_id)
         .execute()
-    )
-    return bool(result.data)
-
-
-def elimina_appuntamento(appuntamento_id: str) -> bool:
-    supabase = get_supabase()
-    result = (
-        supabase.table("appuntamenti").delete().eq("id", appuntamento_id).execute()
     )
     return bool(result.data)
 

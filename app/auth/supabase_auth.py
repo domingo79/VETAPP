@@ -1,30 +1,21 @@
-"""
-auth/supabase_auth.py
-Gestione autenticazione: registrazione, login, logout, sessione.
-"""
+# auth/supabase_auth.py
+# Tutto quello che riguarda login, logout, registrazione e sessione utente.
+
 import streamlit as st
 from app.services.supabase_client import get_supabase
 
 
 def login(email: str, password: str) -> dict | None:
-    """
-    Esegue il login con email e password.
-    Ritorna il dato utente o None in caso di errore.
-    """
     supabase = get_supabase()
     try:
-        response = supabase.auth.sign_in_with_password(
-            {"email": email, "password": password}
-        )
+        response = supabase.auth.sign_in_with_password({"email": email, "password": password})
         user = response.user
         session = response.session
         if user and session:
             st.session_state["user"] = user
             st.session_state["access_token"] = session.access_token
             st.session_state["refresh_token"] = session.refresh_token
-            # Carica il profilo (ruolo, nome, ecc.)
-            profile = _load_profile(user.id)
-            st.session_state["profile"] = profile
+            st.session_state["profile"] = _load_profile(user.id)
             return user
     except Exception as e:
         st.error(f"Errore login: {e}")
@@ -32,36 +23,27 @@ def login(email: str, password: str) -> dict | None:
 
 
 def register(email: str, password: str, nome: str, cognome: str, ruolo: str) -> bool:
-    """
-    Registra un nuovo utente (owner o vet).
-    Crea l'utente in Supabase Auth e inserisce il profilo nella tabella profiles.
-    """
+    # Il profilo viene creato in automatico dal trigger handle_new_user su Supabase
     supabase = get_supabase()
     try:
-        response = supabase.auth.sign_up(
-            {
-                "email": email,
-                "password": password,
-                "options": {
-                    "data": {
-                        "nome": nome.strip().title(),
-                        "cognome": cognome.strip().title(),
-                        "ruolo": ruolo,
-                    }
-                },
-            }
-        )
-        user = response.user
-        if user:
-            # Il profilo viene creato automaticamente dal trigger handle_new_user
-            return True
+        response = supabase.auth.sign_up({
+            "email": email,
+            "password": password,
+            "options": {
+                "data": {
+                    "nome": nome.strip().title(),
+                    "cognome": cognome.strip().title(),
+                    "ruolo": ruolo,
+                }
+            },
+        })
+        return bool(response.user)
     except Exception:
-        pass
-    return False
+        return False
 
 
 def richiedi_reset_password(email: str) -> bool:
-    """Invia email di reset password all'utente."""
+    # Manda il link di reset — il template email è configurato su Supabase
     supabase = get_supabase()
     try:
         supabase.auth.reset_password_email(email)
@@ -71,21 +53,17 @@ def richiedi_reset_password(email: str) -> bool:
 
 
 def verifica_otp(token_hash: str, tipo: str) -> bool:
-    """Verifica un token OTP da email (recovery, invite) e crea la sessione."""
+    # Usata quando l'utente clicca il link da email (reset, conferma, invite)
     supabase = get_supabase()
     try:
-        response = supabase.auth.verify_otp({
-            "token_hash": token_hash,
-            "type": tipo,
-        })
+        response = supabase.auth.verify_otp({"token_hash": token_hash, "type": tipo})
         user = response.user
         session = response.session
         if user and session:
             st.session_state["user"] = user
             st.session_state["access_token"] = session.access_token
             st.session_state["refresh_token"] = session.refresh_token
-            profile = _load_profile(user.id)
-            st.session_state["profile"] = profile
+            st.session_state["profile"] = _load_profile(user.id)
             return True
     except Exception:
         pass
@@ -93,7 +71,7 @@ def verifica_otp(token_hash: str, tipo: str) -> bool:
 
 
 def aggiorna_password(nuova_password: str) -> bool:
-    """Aggiorna la password dell'utente tramite admin API."""
+    # Usa l'admin API perché dopo verify_otp la sessione normale non è sufficiente
     from app.services.supabase_client import get_supabase_admin
     admin = get_supabase_admin()
     user = st.session_state.get("user")
@@ -107,7 +85,7 @@ def aggiorna_password(nuova_password: str) -> bool:
 
 
 def completa_profilo(user_id: str, nome: str, cognome: str, ruolo: str, clinica: str | None = None) -> bool:
-    """Aggiorna il profilo di un utente invitato che non ha ancora completato la registrazione."""
+    # Serve per gli utenti che arrivano via link invite e non hanno ancora un profilo completo
     from app.services.supabase_client import get_supabase_admin
     admin = get_supabase_admin()
     user = st.session_state.get("user")
@@ -130,7 +108,6 @@ def completa_profilo(user_id: str, nome: str, cognome: str, ruolo: str, clinica:
         st.error("Il profilo non è stato salvato nel database. Riprova.")
         return False
 
-    # DB confermato — aggiorna session_state
     profile = st.session_state.get("profile") or {"id": user_id}
     profile.update({"nome": nome, "cognome": cognome, "ruolo": ruolo, "clinica": clinica or None})
     st.session_state["profile"] = profile
@@ -138,7 +115,6 @@ def completa_profilo(user_id: str, nome: str, cognome: str, ruolo: str, clinica:
 
 
 def logout():
-    """Esegue il logout e pulisce la sessione Streamlit."""
     supabase = get_supabase()
     try:
         supabase.auth.sign_out()
@@ -148,13 +124,7 @@ def logout():
         st.session_state.pop(key, None)
 
 
-def get_current_user() -> dict | None:
-    """Restituisce l'utente corrente dalla sessione."""
-    return st.session_state.get("user")
-
-
 def get_current_profile() -> dict | None:
-    """Restituisce il profilo (con ruolo) dell'utente corrente."""
     return st.session_state.get("profile")
 
 
@@ -163,11 +133,8 @@ def is_logged_in() -> bool:
 
 
 def get_ruolo() -> str | None:
-    """Ritorna 'owner' o 'vet' in base al profilo loggato."""
     profile = get_current_profile()
-    if profile:
-        return profile.get("ruolo")
-    return None
+    return profile.get("ruolo") if profile else None
 
 
 def _load_profile(user_id: str) -> dict | None:

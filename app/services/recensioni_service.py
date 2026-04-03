@@ -1,7 +1,5 @@
-"""
-services/recensioni_service.py
-Gestione recensioni dei veterinari da parte dei proprietari.
-"""
+# services/recensioni_service.py
+# Recensioni dei vet: ogni owner può lasciarne una sola per vet (UNIQUE owner+vet nel DB).
 from app.services.supabase_client import get_supabase
 
 

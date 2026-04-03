@@ -1,7 +1,5 @@
-"""
-components/ui_helpers.py
-Componenti e helper UI riutilizzabili in tutta l'app.
-"""
+# components/ui_helpers.py
+# Helper UI condivisi: badge stato, icone specie, formati data, card metriche, empty state.
 import streamlit as st
 from datetime import date, datetime
 

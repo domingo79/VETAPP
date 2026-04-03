@@ -1,7 +1,5 @@
-"""
-pages/login.py
-Pagina di login e registrazione unificata.
-"""
+# pages/login.py
+# Login e registrazione in un'unica pagina con tab.
 import streamlit as st
 from app.auth.supabase_auth import login, register, richiedi_reset_password
 

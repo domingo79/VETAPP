@@ -1,7 +1,5 @@
-"""
-pages/owner/veterinario.py
-Gestione collegamento con il veterinario.
-"""
+# pages/owner/veterinario.py
+# Tabella vet disponibili, richiesta collegamento e recensioni.
 import streamlit as st
 import pandas as pd
 from urllib.parse import quote

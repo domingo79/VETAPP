@@ -1,13 +1,11 @@
-"""
-pages/owner/animali.py
-Gestione animali del proprietario: lista, aggiunta, modifica, dettaglio.
-"""
+# pages/owner/animali.py
+# Gestione animali del proprietario: lista, aggiunta, modifica, eliminazione.
 import streamlit as st
 from datetime import date
 from app.auth.supabase_auth import get_current_profile
 from app.services.animali_service import (
     get_animali_by_owner, crea_animale, aggiorna_animale, elimina_animale,
-    SPECIE, get_suggerimenti, get_vaccini_consigliati
+    SPECIE, get_suggerimenti,
 )
 from app.services.collegamenti_service import get_vet_collegati_owner
 from app.components.ui_helpers import icona_specie, format_data, empty_state, divisore

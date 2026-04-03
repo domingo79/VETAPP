@@ -1,7 +1,5 @@
-"""
-pages/owner/chat.py
-Chat diretta con il veterinario collegato.
-"""
+# pages/owner/chat.py
+# Chat diretta con il veterinario collegato.
 import streamlit as st
 from app.auth.supabase_auth import get_current_profile
 from app.services.collegamenti_service import get_collegamenti_owner

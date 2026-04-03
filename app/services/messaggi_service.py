@@ -1,7 +1,5 @@
-"""
-services/messaggi_service.py
-Chat diretta owner ↔ vet.
-"""
+# services/messaggi_service.py
+# Chat diretta owner ↔ vet: lettura e invio messaggi.
 from app.services.supabase_client import get_supabase
 
 

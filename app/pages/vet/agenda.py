@@ -1,7 +1,5 @@
-"""
-pages/vet/agenda.py
-Agenda appuntamenti del veterinario con gestione stati e creazione appuntamenti.
-"""
+# pages/vet/agenda.py
+# Agenda del vet: visualizzazione e gestione appuntamenti con cambio stato.
 import streamlit as st
 from datetime import date, time, timedelta, datetime
 from app.auth.supabase_auth import get_current_profile

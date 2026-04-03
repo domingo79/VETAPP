@@ -1,16 +1,8 @@
-"""
-services/animali_service.py
-CRUD animali + logica specie-specifica.
-"""
+# services/animali_service.py
+# CRUD per la tabella animali. Contiene anche i suggerimenti specie-specifici mostrati nelle card.
 from app.services.supabase_client import get_supabase
 
 SPECIE = ["Cane", "Gatto", "Cavallo"]
-
-VACCINI_CONSIGLIATI = {
-    "Cane": ["Morbo di Carré", "Parvovirus", "Epatite", "Leptospirosi", "Rabbia"],
-    "Gatto": ["Trivalente (Rinotracheite, Calicivirus, Panleucopenia)", "FeLV"],
-    "Cavallo": ["Influenza equina", "Tetano"],
-}
 
 SUGGERIMENTI = {
     "Cane": [
@@ -57,14 +49,6 @@ def get_animali_by_vet(vet_id: str) -> list:
     return result.data or []
 
 
-def get_animale_by_id(animale_id: str) -> dict | None:
-    supabase = get_supabase()
-    result = (
-        supabase.table("animali").select("*").eq("id", animale_id).single().execute()
-    )
-    return result.data
-
-
 def crea_animale(data: dict) -> dict | None:
     supabase = get_supabase()
     result = supabase.table("animali").insert(data).execute()
@@ -85,7 +69,3 @@ def elimina_animale(animale_id: str) -> bool:
 
 def get_suggerimenti(specie: str) -> list[str]:
     return SUGGERIMENTI.get(specie, [])
-
-
-def get_vaccini_consigliati(specie: str) -> list[str]:
-    return VACCINI_CONSIGLIATI.get(specie, [])

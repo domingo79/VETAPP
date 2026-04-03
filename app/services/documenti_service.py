@@ -1,7 +1,5 @@
-"""
-services/documenti_service.py
-Upload/download documenti su Supabase Storage e record in tabella.
-"""
+# services/documenti_service.py
+# Upload/download documenti su Supabase Storage. Record salvati in tabella documenti.
 import uuid
 from app.services.supabase_client import get_supabase, get_supabase_admin
 

@@ -1,8 +1,5 @@
-"""
-pages/owner/vaccinazioni.py
-Libretto vaccinale e terapie in corso per il proprietario.
-Il proprietario può visualizzare e inserire vaccinazioni dal catalogo standard.
-"""
+# pages/owner/vaccinazioni.py
+# Libretto vaccinale e terapie del proprietario. I vaccini si scelgono dal catalogo standard.
 import streamlit as st
 from datetime import date
 from app.auth.supabase_auth import get_current_profile

@@ -1,13 +1,11 @@
-"""
-pages/vet/cartella_clinica.py
-Compilazione e visualizzazione cartelle cliniche (diagnosi, anamnesi, prescrizioni).
-"""
+# pages/vet/cartella_clinica.py
+# Cartelle cliniche: il vet aggiunge visite, diagnosi, prescrizioni per ogni animale.
 import streamlit as st
 from datetime import date, datetime
 from app.auth.supabase_auth import get_current_profile
 from app.services.animali_service import get_animali_by_vet
 from app.services.cartella_clinica_service import (
-    get_cartelle_by_animale, crea_cartella, aggiorna_cartella, elimina_cartella
+    get_cartelle_by_animale, crea_cartella, elimina_cartella,
 )
 from app.components.ui_helpers import format_datetime, empty_state, icona_specie, divisore
 

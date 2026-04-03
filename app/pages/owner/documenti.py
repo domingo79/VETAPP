@@ -1,7 +1,5 @@
-"""
-pages/owner/documenti.py
-Visualizzazione documenti (referti, ricette, fatture…) in sola lettura.
-"""
+# pages/owner/documenti.py
+# Documenti dell'owner: referti, ricette, fatture. Visualizzazione e download.
 import streamlit as st
 from app.auth.supabase_auth import get_current_profile
 from app.services.animali_service import get_animali_by_owner

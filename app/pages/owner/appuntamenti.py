@@ -1,7 +1,5 @@
-"""
-pages/owner/appuntamenti.py
-Appuntamenti del proprietario: accetta/rifiuta proposte del veterinario.
-"""
+# pages/owner/appuntamenti.py
+# Appuntamenti del proprietario: lista, prenotazione, cambio stato.
 import streamlit as st
 from app.auth.supabase_auth import get_current_profile
 from app.services.appuntamenti_service import (

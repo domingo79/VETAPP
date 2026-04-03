@@ -1,14 +1,12 @@
-"""
-services/collegamenti_service.py
-Gestione collegamento owner ↔ vet con stati pending/accepted/rejected.
-"""
-from app.services.supabase_client import get_supabase, get_supabase_admin
+# services/collegamenti_service.py
+# Gestione collegamento owner ↔ vet (richiesta, accettazione, rifiuto).
+from app.services.supabase_client import get_supabase
 
 STATI = ["pending", "accepted", "rejected"]
 
 
 def get_tutti_vet() -> list:
-    """Restituisce tutti i veterinari registrati sulla piattaforma."""
+    # Tutti i veterinari sulla piattaforma — usato per la tabella in "Il mio veterinario"
     supabase = get_supabase()
     result = (
         supabase.table("profiles")
@@ -20,23 +18,9 @@ def get_tutti_vet() -> list:
     return result.data or []
 
 
-def cerca_vet_per_nome(nome: str) -> list:
-    """Cerca veterinari registrati per nome/cognome (ricerca fuzzy sul campo nome+cognome)."""
-    supabase = get_supabase()
-    result = (
-        supabase.table("profiles")
-        .select("id, nome, cognome, email, clinica")
-        .eq("ruolo", "vet")
-        .ilike("cognome", f"%{nome}%")
-        .execute()
-    )
-    return result.data or []
-
-
 def invia_richiesta_collegamento(owner_id: str, vet_id: str) -> bool:
-    """L'owner invia una richiesta di collegamento al vet."""
     supabase = get_supabase()
-    # Evita duplicati
+    # Evita duplicati — se esiste già qualsiasi stato, non manda una seconda richiesta
     existing = (
         supabase.table("collegamenti")
         .select("id, stato")
@@ -56,7 +40,6 @@ def invia_richiesta_collegamento(owner_id: str, vet_id: str) -> bool:
 
 
 def get_richieste_vet(vet_id: str) -> list:
-    """Restituisce le richieste di collegamento in attesa per il vet."""
     supabase = get_supabase()
     result = (
         supabase.table("collegamenti")
@@ -69,7 +52,6 @@ def get_richieste_vet(vet_id: str) -> list:
 
 
 def get_collegamenti_owner(owner_id: str) -> list:
-    """Restituisce tutti i collegamenti dell'owner (con stato)."""
     supabase = get_supabase()
     result = (
         supabase.table("collegamenti")
@@ -81,7 +63,7 @@ def get_collegamenti_owner(owner_id: str) -> list:
 
 
 def get_vet_collegati_owner(owner_id: str) -> list:
-    """Restituisce i vet accettati dall'owner (per selettore nel form animale)."""
+    # Solo i vet già accettati — serve nel selettore del form animale
     supabase = get_supabase()
     result = (
         supabase.table("collegamenti")
@@ -94,7 +76,6 @@ def get_vet_collegati_owner(owner_id: str) -> list:
 
 
 def get_collegamenti_vet(vet_id: str) -> list:
-    """Restituisce tutti i proprietari accettati dal vet."""
     supabase = get_supabase()
     result = (
         supabase.table("collegamenti")
@@ -107,14 +88,10 @@ def get_collegamenti_vet(vet_id: str) -> list:
 
 
 def accetta_collegamento(collegamento_id: str, vet_id: str) -> bool:
-    """Il vet accetta la richiesta → aggiorna stato e sincronizza animali."""
     supabase = get_supabase()
-    admin = get_supabase_admin()
-
-    # Recupera collegamento
     col = (
         supabase.table("collegamenti")
-        .select("*")
+        .select("id")
         .eq("id", collegamento_id)
         .eq("vet_id", vet_id)
         .single()
@@ -122,12 +99,7 @@ def accetta_collegamento(collegamento_id: str, vet_id: str) -> bool:
     )
     if not col.data:
         return False
-
-    owner_id = col.data["owner_id"]
-
-    # Aggiorna stato collegamento
     supabase.table("collegamenti").update({"stato": "accepted"}).eq("id", collegamento_id).execute()
-
     return True
 
 

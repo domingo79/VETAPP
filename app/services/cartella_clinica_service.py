@@ -1,7 +1,5 @@
-"""
-services/cartella_clinica_service.py
-Diagnosi, anamnesi, prescrizioni digitali (lato veterinario).
-"""
+# services/cartella_clinica_service.py
+# Cartelle cliniche: creazione, lettura, eliminazione. Solo il vet scrive.
 from app.services.supabase_client import get_supabase
 
 
@@ -21,17 +19,6 @@ def crea_cartella(data: dict) -> dict | None:
     supabase = get_supabase()
     result = supabase.table("cartelle_cliniche").insert(data).execute()
     return result.data[0] if result.data else None
-
-
-def aggiorna_cartella(cartella_id: str, data: dict) -> bool:
-    supabase = get_supabase()
-    result = (
-        supabase.table("cartelle_cliniche")
-        .update(data)
-        .eq("id", cartella_id)
-        .execute()
-    )
-    return bool(result.data)
 
 
 def elimina_cartella(cartella_id: str) -> bool:

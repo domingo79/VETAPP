@@ -1,7 +1,5 @@
-"""
-pages/vet/pazienti.py
-Lista pazienti (animali) del veterinario con filtri e gestione completa.
-"""
+# pages/vet/pazienti.py
+# Lista pazienti del vet con filtri per specie e visualizzazione cartelle cliniche.
 import streamlit as st
 from datetime import date
 from app.auth.supabase_auth import get_current_profile

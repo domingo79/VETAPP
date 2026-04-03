@@ -1,7 +1,5 @@
-"""
-pages/vet/dashboard.py
-Dashboard principale per il veterinario.
-"""
+# pages/vet/dashboard.py
+# Dashboard vet: appuntamenti di oggi, ultimi pazienti, richieste di collegamento in attesa.
 import streamlit as st
 from datetime import date
 from app.auth.supabase_auth import get_current_profile

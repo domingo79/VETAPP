@@ -1,7 +1,5 @@
-"""
-pages/vet/listino.py
-Gestione listino prezzi del veterinario.
-"""
+# pages/vet/listino.py
+# Listino prezzi del vet: aggiunta, modifica, disattivazione voci per categoria.
 import streamlit as st
 from app.auth.supabase_auth import get_current_profile
 from app.services.listino_service import (

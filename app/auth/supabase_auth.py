@@ -107,7 +107,15 @@ def completa_profilo(user_id: str, nome: str, cognome: str, ruolo: str, clinica:
             "ruolo": ruolo,
             "clinica": clinica or None,
         }).eq("id", user_id).execute()
-        profile = _load_profile(user_id)
+        # Aggiorna session_state direttamente senza ricaricare dal DB
+        # (evita problemi con sessioni scadute)
+        profile = st.session_state.get("profile") or {"id": user_id}
+        profile.update({
+            "nome": nome,
+            "cognome": cognome,
+            "ruolo": ruolo,
+            "clinica": clinica or None,
+        })
         st.session_state["profile"] = profile
         return True
     except Exception:

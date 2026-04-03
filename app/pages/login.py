@@ -3,7 +3,7 @@ pages/login.py
 Pagina di login e registrazione unificata.
 """
 import streamlit as st
-from app.auth.supabase_auth import login, register
+from app.auth.supabase_auth import login, register, richiedi_reset_password
 
 
 def show():
@@ -43,6 +43,21 @@ def show():
                     st.rerun()
                 else:
                     st.error("Credenziali non valide. Riprova.")
+
+        # ── Password dimenticata ───────────────────────────────────────────────
+        with st.expander("🔑 Hai dimenticato la password?"):
+            email_reset = st.text_input(
+                "Inserisci la tua email", placeholder="tuamail@esempio.it", key="email_reset"
+            )
+            if st.button("📧 Invia link di reset", use_container_width=True):
+                if not email_reset:
+                    st.warning("Inserisci l'email.")
+                else:
+                    ok = richiedi_reset_password(email_reset)
+                    if ok:
+                        st.success("✅ Email inviata! Controlla la casella e clicca il link.")
+                    else:
+                        st.error("Errore nell'invio. Verifica l'indirizzo email.")
 
     # ── TAB REGISTRAZIONE ─────────────────────────────────────────────────────
     with tab_register:

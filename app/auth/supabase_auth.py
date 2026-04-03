@@ -60,6 +60,16 @@ def register(email: str, password: str, nome: str, cognome: str, ruolo: str) -> 
     return False
 
 
+def richiedi_reset_password(email: str) -> bool:
+    """Invia email di reset password all'utente."""
+    supabase = get_supabase()
+    try:
+        supabase.auth.reset_password_email(email)
+        return True
+    except Exception:
+        return False
+
+
 def verifica_otp(token_hash: str, tipo: str) -> bool:
     """Verifica un token OTP da email (recovery, invite) e crea la sessione."""
     supabase = get_supabase()

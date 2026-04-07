@@ -36,7 +36,6 @@ CREATE TABLE IF NOT EXISTS public.animali (
     allergie            TEXT,
     note                TEXT,
     -- Campi gatto
-    sterilizzato        BOOLEAN,
     interno_esterno     TEXT CHECK (interno_esterno IN ('Solo interno', 'Solo esterno', 'Misto')),
     -- Campi cavallo
     passaporto_equino   TEXT,

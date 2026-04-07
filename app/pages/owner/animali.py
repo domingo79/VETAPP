@@ -181,19 +181,13 @@ def _form_animale(owner_id: str):
             vet_id_sel = sel_vet["vet_id"]
 
         # Campi specie-specifici
-        sterilizzato = None
         interno_esterno = None
         passaporto_equino = None
         scuderia = None
 
         if specie == "Gatto":
-            col5, col6 = st.columns(2)
-            with col5:
-                sterilizzato = st.radio("Sterilizzato?", ["Sì", "No"], horizontal=True,
-                                        index=0 if (editing and editing.get("sterilizzato")) else 1)
-            with col6:
-                interno_esterno = st.selectbox("Tipo", ["Solo interno", "Solo esterno", "Misto"],
-                                               index=0)
+            interno_esterno = st.selectbox("Tipo", ["Solo interno", "Solo esterno", "Misto"],
+                                           index=0)
         elif specie == "Cavallo":
             col5, col6 = st.columns(2)
             with col5:
@@ -240,7 +234,6 @@ def _form_animale(owner_id: str):
             "note": note or None,
         }
         if specie == "Gatto":
-            payload["sterilizzato"] = sterilizzato == "Sì"
             payload["interno_esterno"] = interno_esterno
         elif specie == "Cavallo":
             payload["passaporto_equino"] = passaporto_equino or None

@@ -26,9 +26,10 @@ SUGGERIMENTI = {
 
 def get_animali_by_owner(owner_id: str) -> list:
     supabase = get_supabase()
+    # Recupero il vet assegnato a ogni animale
     result = (
         supabase.table("animali")
-        .select("*")
+        .select("*, profiles!vet_id(nome, cognome, clinica)")
         .eq("owner_id", owner_id)
         .order("nome")
         .execute()
@@ -57,7 +58,8 @@ def crea_animale(data: dict) -> dict | None:
 
 def aggiorna_animale(animale_id: str, data: dict) -> bool:
     supabase = get_supabase()
-    result = supabase.table("animali").update(data).eq("id", animale_id).execute()
+    result = supabase.table("animali").update(
+        data).eq("id", animale_id).execute()
     return bool(result.data)
 
 
